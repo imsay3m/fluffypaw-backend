@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from .models import UserAccount
@@ -107,32 +107,35 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return user_data
 
 
-class ChangePasswordSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password]
-    )
-    password2 = serializers.CharField(write_only=True, required=True)
+class ChangePasswordSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(required=True)
     old_password = serializers.CharField(write_only=True, required=True)
-
-    class Meta:
-        model = User
-        fields = ["old_password", "password", "password2"]
+    password = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(write_only=True, required=True)
 
     def validate(self, attrs):
-        if attrs["password"] != attrs["password2"]:
-            raise serializers.ValidationError("Password fields didn't match.")
+        user_id = attrs.get("user_id")
+        old_password = attrs.get("old_password")
+        password = attrs.get("password")
+        password2 = attrs.get("password2")
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise ValidationError("User not found")
+
+        if not user.check_password(old_password):
+            raise ValidationError("Old password is not correct")
+
+        if password != password2:
+            raise ValidationError("New password fields didn't match")
 
         return attrs
 
-    def validate_old_password(self, value):
-        user = self.context["request"].user
-        if not user.check_password(value):
-            raise serializers.ValidationError("Old password is not correct")
-        return value
+    def save(self):
+        user_id = self.validated_data["user_id"]
+        password = self.validated_data["password"]
 
-    def update(self, instance, validated_data):
-
-        instance.set_password(validated_data["password"])
-        instance.save()
-
-        return instance
+        user = User.objects.get(id=user_id)
+        user.set_password(password)
+        user.save()

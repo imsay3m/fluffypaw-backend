@@ -3,11 +3,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.authentication import authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import UpdateAPIView
@@ -100,11 +100,22 @@ class UserUpdateView(UpdateAPIView):
     serializer_class = UserUpdateSerializer
 
 
-class ChangePasswordView(UpdateAPIView):
+""" class ChangePasswordView(UpdateAPIView):
 
     queryset = User.objects.all()
     # permission_classes = IsAuthenticated
-    serializer_class = ChangePasswordSerializer
+    serializer_class = ChangePasswordSerializer """
+
+
+class ChangePasswordView(APIView):
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Password changed successfully"}, status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLogoutAPIView(APIView):

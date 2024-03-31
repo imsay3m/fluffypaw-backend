@@ -22,5 +22,9 @@ urlpatterns = [
     path("edit_profile/<int:pk>/", UserUpdateView.as_view(), name="edit_profile"),
     path("logout/", UserLogoutAPIView.as_view(), name="logout"),
     path("activate/<uid64>/<token>/", activate, name="activate"),
-    path("change_password/<int:pk>/", ChangePasswordView.as_view(), name="change_pass"),
+    path(
+        "change_password/",
+        ChangePasswordView.as_view(),
+        name="change_pass",
+    ),
 ]
