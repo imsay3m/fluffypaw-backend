@@ -96,15 +96,7 @@ class UserLoginAPIView(APIView):
 
 class UserUpdateView(UpdateAPIView):
     queryset = User.objects.all()
-    # permission_classes = IsAuthenticated
     serializer_class = UserUpdateSerializer
-
-
-""" class ChangePasswordView(UpdateAPIView):
-
-    queryset = User.objects.all()
-    # permission_classes = IsAuthenticated
-    serializer_class = ChangePasswordSerializer """
 
 
 class ChangePasswordView(APIView):

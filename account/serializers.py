@@ -1,11 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
-
 from .models import UserAccount
-
-# from rest_framework.response import Response
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
