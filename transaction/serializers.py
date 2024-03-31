@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from account.models import UserAccount
 from pet.models import Pet
 
 from .models import TRANSACTION_TYPE, Transaction
@@ -19,11 +20,21 @@ class DepositSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_account(self, value):
+        try:
+            # Check if the UserAccount with the provided account number exists
+            account = UserAccount.objects.get(id=value.id)
+        except UserAccount.DoesNotExist:
+            raise serializers.ValidationError("Account does not exist.")
+        return account
+
     def create(self, validated_data):
         validated_data["transaction_type"] = "Deposit"
 
-        user = self.context["request"].user
-        account = user.account
+        # user = self.context["request"].user
+        # account = user.account
+
+        account = validated_data["account"]
 
         current_balance = account.balance
         amount = validated_data["amount"]
