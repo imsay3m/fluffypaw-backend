@@ -36,7 +36,9 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
-    "https://*.127.0.0.1",
+    "http://127.0.0.1:5500",
+    "http://127.0.0.1:8000",
+    "http://*.127.0.0.1",
     "http://localhost",
 ]
 CORS_ORIGIN_ALLOW_ALL = True
@@ -72,13 +74,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "fluffypaw.urls"
