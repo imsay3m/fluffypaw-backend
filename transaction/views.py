@@ -27,7 +27,7 @@ class DepositView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdoptPetAPIView(APIView):
+""" class AdoptPetAPIView(APIView):
     def post(self, request):
         serializer = AdoptPetSerializer(data=request.data)
         if serializer.is_valid():
@@ -57,6 +57,20 @@ class AdoptPetAPIView(APIView):
 
             return Response(
                 {"message": f"You have successfully adopted the pet: {pet.name}"},
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) """
+
+
+class AdoptPetAPIView(APIView):
+    def post(self, request):
+        serializer = AdoptPetSerializer(data=request.data)
+        if serializer.is_valid():
+            adopted_pet = serializer.save()
+            return Response(
+                {
+                    "message": f"You have successfully adopted the pet: {adopted_pet.name}"
+                },
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

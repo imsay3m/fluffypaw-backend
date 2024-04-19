@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from account.models import UserAccount
@@ -50,8 +51,9 @@ class DepositSerializer(serializers.ModelSerializer):
         return transaction
 
 
-class AdoptPetSerializer(serializers.Serializer):
+""" class AdoptPetSerializer(serializers.Serializer):
     pet_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
 
     def validate_pet_id(self, value):
         try:
@@ -60,4 +62,62 @@ class AdoptPetSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid pet ID.")
         if pet.adopter:
             raise serializers.ValidationError("This pet has already been adopted.")
-        return value
+        return value """
+
+
+class AdoptPetSerializer(serializers.Serializer):
+    pet_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+
+    def validate(self, data):
+        pet_id = data.get("pet_id")
+        user_id = data.get("user_id")
+
+        try:
+            pet = Pet.objects.get(id=pet_id)
+        except Pet.DoesNotExist:
+            raise serializers.ValidationError("Invalid pet ID.")
+
+        if pet.adopter:
+            raise serializers.ValidationError("This pet has already been adopted.")
+
+        try:
+            user_account = UserAccount.objects.get(user_id=user_id)
+        except UserAccount.DoesNotExist:
+            raise serializers.ValidationError("Invalid user ID or account not found.")
+
+        adopting_cost = pet.price
+
+        if user_account.balance < adopting_cost:
+            raise serializers.ValidationError("Insufficient balance to adopt the pet.")
+
+        # Attach pet and user_account to data to use later in save method
+        data["pet"] = pet
+        data["user_account"] = user_account
+        data["adopting_cost"] = adopting_cost
+
+        return data
+
+    def save(self):
+        pet = self.validated_data["pet"]
+        user_account = self.validated_data["user_account"]
+        adopting_cost = self.validated_data["adopting_cost"]
+
+        with transaction.atomic():
+            # Update the pet's adopter
+            pet.adopter_id = user_account.user_id
+            pet.save()
+
+            # Deduct adopting cost from user's balance
+            user_account.balance -= adopting_cost
+            user_account.save(update_fields=["balance"])
+
+            # Create transaction record
+            Transaction.objects.create(
+                account=user_account,
+                amount=adopting_cost,
+                balance_after_transaction=user_account.balance,
+                transaction_type="Pay",
+            )
+
+        return pet  # You can return the adopted pet or any other desired response
