@@ -40,6 +40,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://*.127.0.0.1",
     "http://localhost",
+    "https://*.koyeb.app",
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = [
@@ -74,6 +75,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -116,10 +118,20 @@ WSGI_APPLICATION = "fluffypaw.wsgi.application"
 
 if DEBUG:
     DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DATABASE_NAME"),
+            "USER": env("DATABASE_USER"),
+            "PASSWORD": env("DATABASE_PASSWORD"),
+            "HOST": env("DATABASE_HOST"),
+            "OPTIONS": {"sslmode": "require"},
+        }
+    }
+    """ DATABASES = {
         "default": dj_database_url.config(
             default=env("EXTERNAL_DATABASE_URL"),
         )
-    }
+    } """
 else:
     DATABASES = {
         "default": {
@@ -173,8 +185,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 
